@@ -35,6 +35,5 @@ test.describe('Filtering Todos', () => {
         await expect(items).toHaveCount(1);
         await expect(items.first()).toContainText('Solve Shift Securitys home assignment');
     });
-
   });
   

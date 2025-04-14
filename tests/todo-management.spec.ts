@@ -15,6 +15,18 @@ test.describe('Todo Management', () => {
       await expect(todoItems).toHaveCount(1);
       await expect(todoItems.first()).toContainText('Buy milk'); 
     });
+
+    test('should handle creating a todo with long text', async ({ page }) => {
+      const longText = 'A very long todo '.repeat(30); // ~500+ chars
+      // Fill in the input field with a long todo item and press Enter
+      await page.getByRole('textbox', { name: 'What needs to be done?' }).fill(longText);
+      await page.keyboard.press('Enter');
+    
+      // Verify that the new todo item is displayed in the list
+      const todoItems = page.locator('.todo-list li');
+      await expect(todoItems).toHaveCount(1);
+      await expect(todoItems.first()).toContainText('A very long todo');
+    });
     
     test('should edit an existing todo item', async ({ page }) => {
       
