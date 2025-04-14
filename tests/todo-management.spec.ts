@@ -110,8 +110,7 @@ test.describe('Todo Management', () => {
       await page.getByRole('listitem').filter({ hasText: 'Buy meat' }).getByLabel('Toggle Todo').uncheck();
       await expect(todoCount).toHaveText('2 items left');
 
-      //Delete an item and verify the count
-  
+      //Delete first item and verify the count
       await todoItems.first().hover();
       await page.getByRole('button', { name: 'Delete' }).click();
       await expect(todoCount).toHaveText('1 item left');
