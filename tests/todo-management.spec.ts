@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { todo } from 'node:test';
 
 test.describe('Todo Management', () => {
     test.beforeEach(async ({ page }) => {
@@ -17,7 +16,6 @@ test.describe('Todo Management', () => {
       await expect(todoItems.first()).toContainText('Buy milk'); 
     });
     
-    // TODO: edit completed todo items
     test('should edit an existing todo item', async ({ page }) => {
       
       // Fill in the input field with a new todo item and press Enter
@@ -42,45 +40,54 @@ test.describe('Todo Management', () => {
       await page.getByRole('textbox', { name: 'What needs to be done?' }).press('Enter');
 
       const todoItems = page.locator('.todo-list li');
-      const todoCount = page.locator('.todo-count');
 
-      /**Complete Tests */
       // Mark the first todo item as completed
       await page.getByRole('listitem').filter({ hasText: 'Buy milk' }).getByLabel('Toggle Todo').check();
-      // Verify that the todo item is marked as completed,
-      // the count is reduced to 0, and the "Clear completed" button is visible
+      // Verify that the todo item is marked as completed and the "Clear completed" button is visible
       await expect(todoItems.first()).toHaveClass(/completed/);
-      await expect(todoCount).toHaveText('0 items left');
       await page.getByRole('button', { name: 'Clear completed' }).isVisible()
 
-      /**Incomplete Tests */
       // Uncheck the checkbox to mark the todo item as incomplete
       await page.getByRole('listitem').filter({ hasText: 'Buy milk' }).getByLabel('Toggle Todo').uncheck();
-      // Verify that the todo item is marked as incomplete, the count is 1,
-      // and the "Clear completed" button is not visible
+      // Verify that the todo item is marked as incomplete and the "Clear completed" button is not visible
       await expect(todoItems.first()).not.toHaveClass(/completed/);
-      await expect(todoItems).toHaveCount(1);
-      await expect(todoCount).toHaveText('1 item left');
       await page.getByRole('button', { name: 'Clear completed' }).isHidden()
     });
 
-    // TODO: try to delete a completed todo, deletion by editing to empty string
     test('should delete a todo item', async ({ page }) => {
       // Fill in the input field with a new todo item and press Enter
       await page.getByRole('textbox', { name: 'What needs to be done?' }).fill('Buy milk');
       await page.getByRole('textbox', { name: 'What needs to be done?' }).press('Enter');
-     
+      await page.getByRole('textbox', { name: 'What needs to be done?' }).fill('Buy bread');
+      await page.getByRole('textbox', { name: 'What needs to be done?' }).press('Enter');
+      await page.getByRole('listitem').filter({ hasText: 'Buy bread' }).getByLabel('Toggle Todo').check();
+
       const todoItems = page.locator('.todo-list li');
 
-      // Click the delete button on the first todo item
-      await todoItems.hover();
-      await page.getByRole('button', { name: 'Delete' }).click();
+      // Delete the incomplete todo item
+      await todoItems.first().hover();
+      await todoItems.first().locator('.destroy').click();
+      // Verify that the incomplete todo item has been removed from the list, and the count is correct
+      await expect(todoItems).toHaveCount(1);
+      // Delete the second completed item
+      await todoItems.first().hover();
+      await todoItems.first().locator('.destroy').click();
 
-      // Verify that the todo item has been deleted from the list, 
-      // and that main and footer sections are deleted since it's the last item
+      // Verify that the complete todo item has been removed from the list,
+      // and the footer and main sections are hidden since there are no items left
       await expect(todoItems).toHaveCount(0);
       await expect(page.locator('section.main')).toHaveCount(0);
       await expect(page.locator('footer.footer')).toHaveCount(0);
+
+      // Another way to delete an item is by editing it to an empty string
+      await page.getByRole('textbox', { name: 'What needs to be done?' }).fill('Buy milk');
+      await page.getByRole('textbox', { name: 'What needs to be done?' }).press('Enter');
+      await page.getByTestId('todo-title').dblclick();
+      await page.getByRole('textbox', { name: 'Edit' }).fill('');
+      await page.getByRole('textbox', { name: 'Edit' }).press('Enter');
+
+      // Verify that the todo item has been removed from the list
+      await expect(todoItems).toHaveCount(0);
     });
 
     test('verify item count updates correctly', async ({ page }) => {
@@ -114,8 +121,5 @@ test.describe('Todo Management', () => {
       await todoItems.first().hover();
       await page.getByRole('button', { name: 'Delete' }).click();
       await expect(todoCount).toHaveText('1 item left');
-
-
     });
-
   });
